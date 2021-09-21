@@ -1,5 +1,7 @@
 #include <iostream>
 #include <random>
+#include <thread>
+#include <chrono>
 #include "TrafficLight.h"
 
 /* Implementation of class "MessageQueue" */
@@ -23,7 +25,7 @@ void MessageQueue<T>::send(T &&msg)
 
 /* Implementation of class "TrafficLight" */
 
-/* 
+
 TrafficLight::TrafficLight()
 {
     _currentPhase = TrafficLightPhase::red;
@@ -53,6 +55,35 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
+
+    long cycleDurationMin = 4.0 * 1000;  // in ms 
+    long cycleDurationMax = 6.0 * 1000; 
+    long currCycleDuration = getRandomCycleTime(cycleDurationMin, cycleDurationMax); 
+
+    // stop watch 
+    std::chrono::time_point<std::chrono::system_clock> lastUpdate; 
+    lastUpdate = std::chrono::system_clock::now();
+
+    // ininite while loop 
+    while(true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
+
+        long timeSinceLastUpdate =  std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastUpdate).count();
+        if ( timeSinceLastUpdate >= currCycleDuration ) {
+            // toggle phase
+            _currentPhase = (_currentPhase == TrafficLightPhase::red ) ? TrafficLightPhase::green : TrafficLightPhase::red; 
+            // pass update to message queue 
+            
+        }
+    }
+
 }
 
-*/
+// private helper function to get a random cycle time in between given bounds 
+long TrafficLight::getRandomCycleTime(long minCycleTime, long maxCycleTime){
+    std::random_device rd;
+    std::mt19937 eng(rd());
+    std::uniform_real_distribution<long> unif(minCycleTime, maxCycleTime); 
+    long randomValue = unif(eng); 
+    return randomValue; 
+}
